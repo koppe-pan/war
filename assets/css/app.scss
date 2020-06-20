@@ -1,0 +1,178 @@
+/* This file is for your main application css. */
+@import "./phoenix.css";
+@import "../node_modules/nprogress/nprogress.css";
+
+/* LiveView specific classes for your customizations */
+.invalid-feedback {
+  color: #a94442;
+  display: block;
+  margin: -1rem 0 2rem;
+}
+
+.phx-no-feedback.invalid-feedback, .phx-no-feedback .invalid-feedback {
+  display: none;
+}
+
+.phx-click-loading {
+  opacity: 0.5;
+  transition: opacity 1s ease-out;
+}
+
+.phx-disconnected{
+  cursor: wait;
+}
+.phx-disconnected *{
+  pointer-events: none;
+}
+
+.phx-modal {
+  opacity: 1!important;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0,0,0);
+  background-color: rgba(0,0,0,0.4);
+}
+
+.phx-modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+}
+
+.phx-modal-close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.phx-modal-close:hover,
+.phx-modal-close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+
+/* Alerts and form errors */
+.alert {
+  padding: 15px;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+.alert-info {
+  color: #31708f;
+  background-color: #d9edf7;
+  border-color: #bce8f1;
+}
+.alert-warning {
+  color: #8a6d3b;
+  background-color: #fcf8e3;
+  border-color: #faebcc;
+}
+.alert-danger {
+  color: #a94442;
+  background-color: #f2dede;
+  border-color: #ebccd1;
+}
+.alert p {
+  margin-bottom: 0;
+}
+.alert:empty {
+  display: none;
+}
+
+.square {
+  height: 12.5%;
+  width: 12.5%;
+  position: absolute;
+}
+
+.square-dark {
+  background-color: #ce8919;
+}
+
+.square-light {
+  background-color: #fce4b2;
+}
+
+.square-selected {
+  background-color: #8eca8e;
+}
+
+.square-dragged-over {
+  box-shadow: inset 0 0 75px #8eca8e;
+}
+
+.piece {
+  height: 12.5%;
+  width: 12.5%;
+  background-size: cover;
+  position: absolute;
+  transition: top ease-in-out 500ms, left ease-in-out 500ms;
+}
+
+.piece-captured {
+  height: 2em;
+  width: 2em;
+  position: relative;
+  display: inline-block;
+}
+
+.rank-0 {
+  top:87.5%;
+}
+.rank-1 {
+  top:75%;
+}
+.rank-2 {
+  top:62.5%;
+}
+.rank-3 {
+  top:50%;
+}
+.rank-4 {
+  top:37.5%;
+}
+.rank-5 {
+  top:25%;
+}
+.rank-6 {
+  top:12.5%;
+}
+.rank-7 {
+  top: 0;
+}
+
+.file-0 {
+  left: 0;
+}
+.file-1 {
+  left:12.5%;
+}
+.file-2 {
+  left:25%;
+}
+.file-3 {
+  left:37.5%;
+}
+.file-4 {
+  left:50%;
+}
+.file-5 {
+  left:62.5%;
+}
+.file-6 {
+  left:75%;
+}
+.file-7 {
+  left:87.5%;
+}
