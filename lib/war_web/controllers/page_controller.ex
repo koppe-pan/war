@@ -8,11 +8,16 @@ defmodule WarWeb.PageController do
   end
 
   def new(conn, _params) do
-    case GameSupervisor.create_game(1) do
+    id = War.generate_id()
+
+    case GameSupervisor.create_game(id) do
       {:ok, pid} ->
+        Process.register(pid, String.to_atom(id))
+
         conn
         |> put_session("game_pid", pid)
-        |> put_flash(:info, "ID is #{inspect(pid)}")
+        |> clear_flash()
+        |> put_flash(:info, "ID is " <> id)
         |> live_render(WarWeb.GameLive, session: %{"game_pid" => pid})
 
       {:error, _error} ->
@@ -21,8 +26,14 @@ defmodule WarWeb.PageController do
     end
   end
 
-  def play(conn, %{"pid" => p} = _params) do
+  def play(conn, %{"pid_atom" => p} = _params) do
+    pid =
+      p
+      |> String.to_atom()
+      |> Process.whereis()
+
     conn
-    |> live_render(WarWeb.GameLive, session: %{"game_pid" => p})
+    |> clear_flash()
+    |> live_render(WarWeb.GameLive, session: %{"game_pid" => pid})
   end
 end

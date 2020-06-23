@@ -4,7 +4,7 @@
   </div>
   <div class="row">
     <%= form_tag("/play", method: :post) %>
-    <input type="text" name="pid" placeholder="id" required autofocus>
-    <button class="btn btn-lg btn-primary btn-block" type="submit"> Play</button>
+    <input type="text" name="pid_atom" placeholder="id" required autofocus>
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Play</button>
   </div>
 </div>

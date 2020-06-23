@@ -3,43 +3,168 @@ defmodule WarWeb.GameLive do
 
   alias War.{Game, GameSupervisor}
 
+  @tick 300
+
   @impl true
-  def mount(_params, %{"game_pid" => pid} = _session, socket) do
+  def mount(_params, %{"_csrf_token" => token, "game_pid" => pid} = _session, socket) do
+    Game.initialize_board(pid, token)
+
+    game = GameSupervisor.state(pid)
+
     socket =
+      if token == game.white do
+        socket |> assign(color: "white")
+      else
+        socket |> assign(color: "black")
+      end
+      |> assign(pid: pid, selected_square: nil, tick: @tick, tick_move: 0)
+      |> update_assigns_from_game()
+
+    if connected?(socket) do
+      {:ok,
+       socket
+       |> schedule_tick()}
+    else
+      {:ok, socket}
+    end
+  end
+
+  def handle_event(
+        "square-clicked",
+        %{"number" => n},
+        %{assigns: %{selected_square: nil}} = socket
+      ) do
+    {:noreply, assign(socket, selected_square: String.to_integer(n))}
+  end
+
+  def handle_event("square-clicked", %{"number" => n}, %{assigns: %{selected_square: m}} = socket) do
+    if(m == String.to_integer(n)) do
+      {:noreply, assign(socket, selected_square: nil)}
+    else
+      {:noreply, assign(socket, selected_square: String.to_integer(n))}
+    end
+  end
+
+  def handle_event("update-state", %{"id_for_state" => i, "state" => s}, socket) do
+    id = String.to_integer(i)
+
+    socket.assigns[:pid]
+    |> Game.update_state(socket.assigns[:color], id, s)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("update-direction", %{"id_for_direction" => i, "direction" => d}, socket) do
+    id = String.to_integer(i)
+
+    socket.assigns[:pid]
+    |> Game.update_direction(socket.assigns[:color], id, d)
+
+    {:noreply, socket}
+  end
+
+  def handle_info(:tick, socket) do
+    new_socket =
       socket
-      |> assign(id: pid, selected_square: nil)
-      |> update_assigns_from_game(GameSupervisor.state(pid))
+      |> update_assigns_from_game()
+      |> schedule_tick()
 
-    {:ok, socket}
+    {:noreply, new_socket}
   end
 
-  def handle_event("square-clicked", %{"id" => n}, %{assigns: %{selected_square: n}} = socket) do
-    {:noreply, assign(socket, selected_square: nil)}
-  end
-
-  def handle_event("square-clicked", %{"id" => n}, %{assigns: %{selected_square: nil}} = socket) do
-    {:noreply, assign(socket, selected_square: n)}
-  end
-
-  def handle_info(%Game{} = game, socket) do
-    {:noreply, update_assigns_from_game(socket, game)}
-  end
-
-  defp update_assigns_from_game(socket, game) do
+  defp schedule_tick(socket) do
+    Process.send_after(self(), :tick, socket.assigns.tick)
     socket
+  end
+
+  defp update_assigns_from_game(socket = %{assigns: %{tick_move: 10}}) do
+    game =
+      socket.assigns[:pid]
+      |> GameSupervisor.state()
+
+    Game.update_seen(socket.assigns[:pid])
+    Game.update_dead(socket.assigns[:pid])
+    Game.update_position(socket.assigns[:pid])
+
+    cond do
+      Game.win_color(game) == socket.assigns[:color] ->
+        finish_game(socket.assigns[:pid], socket.assigns[:color])
+
+        socket
+        |> put_flash(:info, "You Win!")
+        |> redirect(to: Routes.page_path(WarWeb.Endpoint, :index))
+
+      Game.win_color(game) == opponent_color(socket) ->
+        finish_game(socket.assigns[:pid], socket.assigns[:color])
+
+        socket
+        |> put_flash(:info, "You Lose!")
+        |> redirect(to: Routes.page_path(WarWeb.Endpoint, :index))
+
+      true ->
+        socket
+    end
+    |> assign(tick_move: 0)
     |> assign_pieces(game)
+    |> assign_enemies(game)
+    |> assign_detail(game)
+  end
+
+  defp update_assigns_from_game(socket = %{assigns: %{tick_move: move}}) do
+    game =
+      socket.assigns[:pid]
+      |> GameSupervisor.state()
+
+    Game.update_seen(socket.assigns[:pid])
+    Game.update_dead(socket.assigns[:pid])
+
+    cond do
+      Game.win_color(game) == socket.assigns[:color] ->
+        finish_game(socket.assigns[:pid], socket.assigns[:color])
+
+        socket
+        |> put_flash(:info, "You Win!")
+        |> redirect(to: Routes.page_path(WarWeb.Endpoint, :index))
+
+      Game.win_color(game) == opponent_color(socket) ->
+        finish_game(socket.assigns[:pid], socket.assigns[:color])
+
+        socket
+        |> put_flash(:info, "You Lose!")
+        |> redirect(to: Routes.page_path(WarWeb.Endpoint, :index))
+
+      true ->
+        socket
+    end
+    |> assign(tick_move: move + 1)
+    |> assign_pieces(game)
+    |> assign_enemies(game)
     |> assign_detail(game)
   end
 
   defp assign_pieces(socket, game) do
     p =
       game
-      |> Map.get(:board)
+      |> Map.get(my_board(socket))
       |> Enum.reject(fn v -> is_nil(v) end)
-      |> Enum.map(fn g -> {g.id, g.color, g.position} end)
+      |> Enum.reject(fn v -> v.dead? end)
+      |> Enum.map(fn v -> {v.id, v.position} end)
       |> Enum.sort()
 
     assign(socket, pieces: p)
+  end
+
+  defp assign_enemies(socket, game) do
+    p =
+      game
+      |> Map.get(opponent_board(socket))
+      |> Enum.reject(fn v -> is_nil(v) end)
+      |> Enum.reject(fn v -> v.dead? end)
+      |> Enum.filter(fn v -> v.seen? end)
+      |> Enum.map(fn v -> v.position end)
+      |> Enum.sort()
+
+    assign(socket, enemies: p)
   end
 
   defp assign_detail(%{assigns: %{selected_square: nil}} = socket, _game) do
@@ -49,11 +174,44 @@ defmodule WarWeb.GameLive do
   defp assign_detail(%{assigns: %{selected_square: id}} = socket, game) do
     g =
       game
-      |> Map.get(:board)
+      |> Map.get(my_board(socket))
       |> Enum.reject(fn v -> is_nil(v) end)
-      |> Enum.find(fn g -> g.id == id end)
+      |> Enum.find(fn v -> v.id == id end)
 
-    d = {g.id, g.position, g.state, g.direction}
-    assign(socket, detail: d)
+    if is_nil(g) do
+      assign(socket, detail: nil)
+    else
+      d = %{
+        id: g.id,
+        position: %{file: elem(g.position, 0), rank: elem(g.position, 1)},
+        state: g.state,
+        direction: g.direction
+      }
+
+      assign(socket, detail: d)
+    end
+  end
+
+  defp my_board(socket) do
+    ("board_" <> socket.assigns[:color])
+    |> String.to_atom()
+  end
+
+  defp opponent_board(socket) do
+    ("board_" <> opponent_color(socket))
+    |> String.to_atom()
+  end
+
+  defp opponent_color(socket) do
+    if socket.assigns[:color] == "white" do
+      "black"
+    else
+      "white"
+    end
+  end
+
+  defp finish_game(pid, color) do
+    Game.finish(pid, color)
+    GameSupervisor.stop_game(pid, GameSupervisor.state(pid))
   end
 end

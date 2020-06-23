@@ -14,17 +14,57 @@
       <section class="container">
         <nav role="navigation">
           <ul>
-            <li><a href="https://hexdocs.pm/phoenix/overview.html">Get Started</a></li>
-            <%= if function_exported?(Routes, :live_dashboard_path, 2) do %>
-              <li><%= link "LiveDashboard", to: Routes.live_dashboard_path(@conn, :home) %></li>
-            <% end %>
+            <li>
+            </li>
           </ul>
         </nav>
-        <a href="https://phoenixframework.org/" class="phx-logo">
-          <img src="<%= Routes.static_path(@conn, "/images/phoenix.png") %>" alt="Phoenix Framework Logo"/>
-        </a>
+        <img src="<%= Routes.static_path(@conn, "/images/usami.png") %>" alt="Usami Logo"/>
+        <h1>うさみWAR</h1>
       </section>
     </header>
-    <%= @inner_content %>
+    <div class="tabs">
+      <input id="contents" type="radio" name="tab_item" checked>
+      <label class="tab_item" for="contents">
+        ゲーム画面
+      </label>
+      <input id="instruction" type="radio" name="tab_item">
+      <label class="tab_item" for="instruction">
+        遊び方
+      </label>
+      <div class="tab_content" id="contents_content">
+        <%= @inner_content %>
+      </div>
+      <div class="tab_content" id="instruction_content">
+        <div class="column column-50">
+          <div class="row">
+            <div class="instruction-box">
+              <span class="box-title">勝利条件</span>
+              <ol>
+                <li>全キャラが敵の攻撃によって全滅させられる。</li>
+                <li>全キャラが敵の索敵によって発見される。</li>
+              </ol>
+            </div>
+            <div class="instruction-box">
+              <span class="box-title">状態について</span>
+              <ul>
+                <li>'idle' 状態のキャラは何も行いません。</li>
+                <li>'attack' 状態のキャラは自身から2マス以内の敵キャラを自動で攻撃します。</li>
+                <li>'search' 状態のキャラは自身から4マス以内の敵キャラを自動で発見します。</li>
+              </ul>
+            </div>
+            <div class="instruction-box">
+              <span class="box-title">移動について</span>
+              <ul>
+                <li>'w'を入力すると、上方向へ１マス移動、と登録します。</li>
+                <li>'a'を入力すると、左方向へ１マス移動、と登録します。</li>
+                <li>'s'を入力すると、下方向へ１マス移動、と登録します。</li>
+                <li>'d'を入力すると、右方向へ１マス移動、と登録します。</li>
+                <li>ボタンを押すと、登録された移動を実行します。</li>
+              </ul>
+              <h3>（例）'wwdd'と入力し、その後ボタンを押すと、上上右と移動します。</h3>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

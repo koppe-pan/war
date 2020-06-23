@@ -11,32 +11,16 @@ defmodule War.GameSupervisor do
   @doc """
   Creates a new supervised Game process
   """
-  def create_game(id), do: start_child(@server_mod, {Game, [id]})
+  def create_game(id), do: start_child(@server_mod, {Game, id})
 
   def state(pid) do
     :sys.get_state(pid)
   end
 
-  @doc """
-  Returns a list of the current games
-  """
-  def current_games do
-    __MODULE__
-    |> Supervisor.which_children()
-    |> Enum.map(&game_data/1)
+  def stop_game(pid, _game = %{white: "finished", black: "finished"}) do
+    terminate_child(@server_mod, pid)
   end
 
-  def stop_game(game_id) do
-    Logger.debug("Stopping game #{game_id} in supervisor")
-
-    pid = GenServer.whereis({:global, {:game, game_id}})
-
-    Supervisor.terminate_child(__MODULE__, pid)
-  end
-
-  defp game_data({_id, pid, _type, _modules}) do
-    pid
-    |> GenServer.call(:get_data)
-    |> Map.take([:id, :attacker, :defender, :turns, :over, :winner])
+  def stop_game(_pid, _game) do
   end
 end

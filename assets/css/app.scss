@@ -90,6 +90,7 @@
   display: none;
 }
 
+/* About inner item */
 .square {
   height: 12.5%;
   width: 12.5%;
@@ -116,6 +117,7 @@
   height: 12.5%;
   width: 12.5%;
   background-size: cover;
+  background-image: url("/images/usami.png");
   position: absolute;
   transition: top ease-in-out 500ms, left ease-in-out 500ms;
 }
@@ -125,6 +127,10 @@
   width: 2em;
   position: relative;
   display: inline-block;
+}
+
+.piece-enemy {
+  background-color: #ff0000;
 }
 
 .rank-0 {
@@ -175,4 +181,86 @@
 }
 .file-7 {
   left:87.5%;
+}
+
+/* About tabs */
+/*タブ切り替え全体のスタイル*/
+.tabs {
+  margin-top: 50px;
+  padding-bottom: 40px;
+  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  margin: 0 auto;}
+
+/*タブのスタイル*/
+.tab_item {
+  width: calc(100%/3);
+  height: 50px;
+  border-bottom: 3px solid #5ab4bd;
+  background-color: #d9d9d9;
+  line-height: 50px;
+  font-size: 16px;
+  text-align: center;
+  color: #565656;
+  display: block;
+  float: left;
+  text-align: center;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+.tab_item:hover {
+  opacity: 0.75;
+}
+
+/*ラジオボタンを全て消す*/
+input[name="tab_item"] {
+  display: none;
+}
+
+/*タブ切り替えの中身のスタイル*/
+.tab_content {
+  display: none;
+  padding: 40px 40px 0;
+  clear: both;
+  overflow: hidden;
+}
+
+
+/*選択されているタブのコンテンツのみを表示*/
+#contents:checked ~ #contents_content,
+#instruction:checked ~ #instruction_content {
+  display: block;
+}
+
+/*選択されているタブのスタイルを変える*/
+.tabs input:checked + .tab_item {
+  background-color: #5ab4bd;
+  color: #fff;
+}
+
+/*説明文のスタイル*/
+.instruction-box {
+  position: relative;
+  margin: 2em 0;
+  padding: 0.5em 1em;
+  border: solid 3px #95ccff;
+  border-radius: 8px;
+
+  .box-title {
+    position: absolute;
+    display: inline-block;
+    top: -13px;
+    left: 10px;
+    padding: 0 9px;
+    line-height: 1;
+    font-size: 19px;
+    background: #FFF;
+    color: #95ccff;
+    font-weight: bold;
+  }
+
+  p {
+    margin: 0;
+    padding: 0;
+  }
 }

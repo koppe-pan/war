@@ -9,39 +9,47 @@
           <%= for f <- 7..0 do %>
             <div
               class="square file-<%= f %> rank-<%= r %> <%= if rem(r+f, 2) == 0, do: "square-dark", else: "square-light"%>"
-              phx-value-name="<%= "#{f}#{r}" %>"
-              phx-hook="Square"
             ></div>
           <% end %>
         <% end %>
       </div>
       <div id="pieces-container">
-        <%= for {id, color, {file, rank}} <- @pieces do %>
+        <%= for {id, {file, rank}} <- @pieces do %>
           <div
             class="piece file-<%= file %> rank-<%= rank %> <%= if assigns[:selected_square] == id, do: "square-selected"%>"
-            draggable="false"
-            phx-hook="Piece"
-            phx-value-name="<%= "#{file}#{rank}" %>"
-            data-current-square="<%= "#{file}#{rank}" %>"
-            id="<%= id %>"
             ><h1><%= id %></h1></div>
+        <% end %>
+        <%= for {file, rank} <- @enemies do %>
+          <div
+            class="piece piece-enemy file-<%= file %> rank-<%= rank %>"
+            ></div>
         <% end %>
       </div>
     </div>
   </div>
-  <div class="column column-25">
+  <div class="column column-50">
     <%= if !is_nil(@detail) do %>
-      <%= {id, {file, rank}, state, direction} = @detail %>
-      <h1>id: <%= id %></h1>
-      <h2>pos: ( <%= file %>, <%= rank %> )</h2>
+      <h1>id: <%= @detail.id %></h1>
+      <h2>pos: (<%= @detail.position.file %>, <%= @detail.position.rank %>)</h2>
+      <form phx-change="update-state">
+        <input name="id_for_state" value="<%= @detail.id %>" type="hidden">
+        <input name="state" value="idle" type="radio" <%= if @detail.state == "idle", do: "checked" %>> idle
+        <input name="state" value="attack" type="radio" <%= if @detail.state == "attack", do: "checked" %>> attack
+        <input name="state" value="search" type="radio" <%= if @detail.state == "search", do: "checked" %>> search
+      </form>
+      <form phx-submit="update-direction">
+        <input name="id_for_direction" value="<%= @detail.id %>" type="hidden">
+        <input name="direction" type="text" placeholder="<%= @detail.direction %>" autocomplete="off">
+        <button type="submit">change direction</button>
+      </form>
     <% end %>
   </div>
 </div>
 <div class="row">
   <div class="column">
-    <%= for {id, _color, {_file, _rank}} <- @pieces do %>
+    <%= for {id, {_file, _rank}} <- @pieces do %>
       <button
-        phx-value-id="<%= "#{id}" %>"
+        phx-value-number="<%= id %>"
         phx-click="square-clicked"
       ><%= id %></button>
     <% end %>
