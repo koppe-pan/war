@@ -63,10 +63,10 @@ defmodule War.Game do
       ""
     else
       cond do
-        Enum.all?(game.board_white, fn v -> v.seen? end) or Enum.empty?(game.board_white) ->
+        Enum.empty?(game.board_white) ->
           "black"
 
-        Enum.all?(game.board_black, fn v -> v.seen? end) or Enum.empty?(game.board_black) ->
+        Enum.empty?(game.board_black) ->
           "white"
 
         true ->
