@@ -97,7 +97,7 @@ defmodule War.Game do
           id: key,
           state: "idle",
           position: {key, 0},
-          seen?: false,
+          seen?: true,
           dead?: false,
           direction: ""
         }
@@ -110,7 +110,7 @@ defmodule War.Game do
           id: key,
           state: "idle",
           position: {key, 7},
-          seen?: false,
+          seen?: true,
           dead?: false,
           direction: ""
         }
