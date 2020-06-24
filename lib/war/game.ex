@@ -14,8 +14,6 @@ defmodule War.Game do
 
   @width 8
   @depth 8
-  @search_area 4
-  @attack_area 2
   @near 1
 
   def start_link(id) do
@@ -46,8 +44,8 @@ defmodule War.Game do
     GenServer.cast(pid, {:update_direction, {"white", id, direction}})
   end
 
-  def update_position(pid) do
-    GenServer.cast(pid, :update_move)
+  def update_position(pid, tick_move) do
+    GenServer.cast(pid, {:update_move, tick_move})
   end
 
   def update_seen(pid) do
@@ -58,15 +56,19 @@ defmodule War.Game do
     GenServer.cast(pid, :update_dead)
   end
 
+  def update_hp(pid) do
+    GenServer.cast(pid, :update_hp)
+  end
+
   def win_color(game) do
     if is_nil(game.black) do
       ""
     else
       cond do
-        Enum.empty?(game.board_white) ->
+        Enum.all?(game.board_white, fn v -> v.seen? end) or Enum.empty?(game.board_white) ->
           "black"
 
-        Enum.empty?(game.board_black) ->
+        Enum.all?(game.board_black, fn v -> v.seen? end) or Enum.empty?(game.board_black) ->
           "white"
 
         true ->
@@ -93,27 +95,21 @@ defmodule War.Game do
     generated_white =
       0..7
       |> Enum.map(fn key ->
-        %{
-          id: key,
-          state: "idle",
-          position: {key, 0},
-          seen?: true,
-          dead?: false,
-          direction: ""
-        }
+        if rem(key, 2) == 0 do
+          attacker_white(key)
+        else
+          searcher_white(key)
+        end
       end)
 
     generated_black =
       0..7
       |> Enum.map(fn key ->
-        %{
-          id: key,
-          state: "idle",
-          position: {key, 7},
-          seen?: true,
-          dead?: false,
-          direction: ""
-        }
+        if rem(key, 2) == 0 do
+          attacker_black(key)
+        else
+          searcher_black(key)
+        end
       end)
 
     {:noreply,
@@ -171,20 +167,39 @@ defmodule War.Game do
     {:noreply, Map.replace!(game, :board_white, replaced)}
   end
 
-  def handle_cast(:update_dead, game) do
+  def handle_cast(:update_hp, game) do
     replaced_white =
       game
       |> Map.get(:board_white)
       |> Enum.reject(fn v -> is_nil(v) end)
       |> Enum.reject(fn v -> v.dead? end)
-      |> Enum.map(fn v -> replace_dead(v, game.board_black) end)
+      |> Enum.map(fn v -> replace_hp(v, game.board_black) end)
 
     replaced_black =
       game
       |> Map.get(:board_black)
       |> Enum.reject(fn v -> is_nil(v) end)
       |> Enum.reject(fn v -> v.dead? end)
-      |> Enum.map(fn v -> replace_dead(v, game.board_white) end)
+      |> Enum.map(fn v -> replace_hp(v, game.board_white) end)
+
+    {:noreply,
+     game
+     |> Map.replace!(:board_white, replaced_white)
+     |> Map.replace!(:board_black, replaced_black)}
+  end
+
+  def handle_cast(:update_dead, game) do
+    replaced_white =
+      game
+      |> Map.get(:board_white)
+      |> Enum.reject(fn v -> is_nil(v) end)
+      |> Enum.map(fn v -> replace_dead(v) end)
+
+    replaced_black =
+      game
+      |> Map.get(:board_black)
+      |> Enum.reject(fn v -> is_nil(v) end)
+      |> Enum.map(fn v -> replace_dead(v) end)
 
     {:noreply,
      game
@@ -213,20 +228,20 @@ defmodule War.Game do
      |> Map.replace!(:board_black, replaced_black)}
   end
 
-  def handle_cast(:update_move, game) do
+  def handle_cast({:update_move, tick_move}, game) do
     replaced_white =
       game
       |> Map.get(:board_white)
       |> Enum.reject(fn v -> is_nil(v) end)
       |> Enum.reject(fn v -> v.dead? end)
-      |> Enum.map(fn v -> replace_move(v) end)
+      |> Enum.map(fn v -> replace_move(v, tick_move) end)
 
     replaced_black =
       game
       |> Map.get(:board_black)
       |> Enum.reject(fn v -> is_nil(v) end)
       |> Enum.reject(fn v -> v.dead? end)
-      |> Enum.map(fn v -> replace_move(v) end)
+      |> Enum.map(fn v -> replace_move(v, tick_move) end)
 
     {:noreply,
      game
@@ -257,24 +272,40 @@ defmodule War.Game do
     board
   end
 
-  defp replace_dead(board, opponent) do
-    s =
+  defp replace_hp(board, opponent) do
+    damage =
       opponent
       |> Enum.reject(fn v -> is_nil(v) end)
       |> Enum.reject(fn v -> v.dead? end)
-      |> Enum.map(fn v -> whether_dead(board.position, v) end)
-      |> Enum.any?()
+      |> Enum.map(fn v -> how_damaged(board.position, v) end)
+      |> Enum.reduce(0, fn x, acc -> x + acc end)
 
     board
-    |> Map.replace!(:dead?, s)
+    |> Map.replace!(:hp, board.hp - damage)
   end
 
-  defp whether_dead(position, opponent_board = %{state: "attack"}) do
-    dist(position, opponent_board.position) <= @attack_area
+  defp how_damaged(position, opponent_board = %{state: "attack"}) do
+    if dist(position, opponent_board.position) <= opponent_board.attack_area do
+      opponent_board.ap
+    else
+      0
+    end
   end
 
-  defp whether_dead(position, opponent_board) do
-    dist(position, opponent_board.position) <= @near
+  defp how_damaged(position, opponent_board) do
+    if dist(position, opponent_board.position) <= @near do
+      opponent_board.ap
+    else
+      0
+    end
+  end
+
+  defp replace_dead(board) do
+    if board.hp <= 0 do
+      Map.replace!(board, :dead?, true)
+    else
+      board
+    end
   end
 
   defp replace_seen(board, opponent) do
@@ -290,7 +321,7 @@ defmodule War.Game do
   end
 
   defp whether_seen(position, opponent_board = %{state: "search"}) do
-    dist(position, opponent_board.position) <= @search_area
+    dist(position, opponent_board.position) <= opponent_board.search_area
   end
 
   defp whether_seen(position, opponent_board) do
@@ -301,14 +332,18 @@ defmodule War.Game do
     abs(x - a) + abs(y - b)
   end
 
-  defp replace_move(board) do
-    p =
-      String.at(board.direction, 0)
-      |> move(board.position)
+  defp replace_move(board, tick_move) do
+    if rem(tick_move, board.speed) == 0 do
+      p =
+        String.at(board.direction, 0)
+        |> move(board.position)
 
-    board
-    |> Map.replace!(:position, p)
-    |> Map.replace!(:direction, String.slice(board.direction, 1..-1))
+      board
+      |> Map.replace!(:position, p)
+      |> Map.replace!(:direction, String.slice(board.direction, 1..-1))
+    else
+      board
+    end
   end
 
   defp move("w", {x, y}) do
@@ -345,5 +380,69 @@ defmodule War.Game do
 
   defp move(_, position) do
     position
+  end
+
+  defp searcher_white(key) do
+    %{
+      id: key,
+      state: "idle",
+      position: {key, 0},
+      ap: 1,
+      hp: 100,
+      attack_area: 1,
+      search_area: 4,
+      speed: 30,
+      seen?: false,
+      dead?: false,
+      direction: ""
+    }
+  end
+
+  defp searcher_black(key) do
+    %{
+      id: key,
+      state: "idle",
+      position: {key, 7},
+      ap: 1,
+      hp: 100,
+      attack_area: 1,
+      search_area: 4,
+      speed: 30,
+      seen?: false,
+      dead?: false,
+      direction: ""
+    }
+  end
+
+  defp attacker_white(key) do
+    %{
+      id: key,
+      state: "idle",
+      position: {key, 0},
+      ap: 5,
+      hp: 400,
+      attack_area: 2,
+      search_area: 1,
+      speed: 60,
+      seen?: false,
+      dead?: false,
+      direction: ""
+    }
+  end
+
+  defp attacker_black(key) do
+    %{
+      id: key,
+      state: "idle",
+      position: {key, 7},
+      ap: 5,
+      hp: 400,
+      attack_area: 2,
+      search_area: 1,
+      speed: 60,
+      seen?: false,
+      dead?: false,
+      direction: ""
+    }
   end
 end

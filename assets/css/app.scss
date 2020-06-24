@@ -119,6 +119,7 @@
   background-size: cover;
   background-image: url("/images/usami.png");
   position: absolute;
+  transition: top ease-in-out 500ms, left ease-in-out 500ms;
 }
 
 .piece-captured {
@@ -132,6 +133,9 @@
   background-color: #ff0000;
 }
 
+.piece-dead {
+  background-image: url("/images/hage.png");
+}
 .rank-0 {
   top:87.5%;
 }

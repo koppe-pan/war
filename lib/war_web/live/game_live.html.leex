@@ -1,6 +1,7 @@
 <div class="row">
   <div class="column column-25">
     <a href="/new" class="button">New Game</a>
+    <p>残り敵数: <%= @enemies_count %></p>
   </div>
   <div class="column column-50">
     <div style="position:relative;height:0;width:100%;padding-bottom:100%;">
@@ -14,14 +15,14 @@
         <% end %>
       </div>
       <div id="pieces-container">
-        <%= for {id, {file, rank}} <- @pieces do %>
+        <%= for {id, {file, rank}, _state, _hp, _ap, _attack_area, _search_area, _speed} <- @pieces do %>
           <div
             class="piece file-<%= file %> rank-<%= rank %> <%= if assigns[:selected_square] == id, do: "square-selected"%>"
             ><h1><%= id %></h1></div>
         <% end %>
-        <%= for {file, rank} <- @enemies do %>
+        <%= for {{file, rank}, dead} <- @enemies do %>
           <div
-            class="piece piece-enemy file-<%= file %> rank-<%= rank %>"
+            class="piece piece-enemy file-<%= file %> rank-<%= rank %> <%= if dead, do: "piece-dead"%>"
             ></div>
         <% end %>
       </div>
@@ -46,12 +47,20 @@
   </div>
 </div>
 <div class="row">
-  <div class="column">
-    <%= for {id, {_file, _rank}} <- @pieces do %>
-      <button
-        phx-value-number="<%= id %>"
-        phx-click="square-clicked"
-      ><%= id %></button>
-    <% end %>
-  </div>
+  <%= for {id, {_file, _rank}, state, hp, ap, attack_area, search_area, speed} <- @pieces do %>
+    <div class="column column-12">
+      <div class="instruction-box">
+        <button
+          phx-value-number="<%= id %>"
+          phx-click="square-clicked"
+        ><%= id %></button>
+        <p>HP: <%= hp %></p>
+        <p>状態: <%= state %></p>
+        <p>攻撃力: <%= ap %></p>
+        <p>攻撃範囲: <%= attack_area %></p>
+        <p>索敵範囲: <%= search_area %></p>
+        <p>素早さ: <%= speed %></p>
+      </div>
+    </div>
+  <% end %>
 </div>

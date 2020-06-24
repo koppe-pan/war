@@ -77,46 +77,21 @@ defmodule WarWeb.GameLive do
     socket
   end
 
-  defp update_assigns_from_game(socket = %{assigns: %{tick_move: 10}}) do
-    game =
-      socket.assigns[:pid]
-      |> GameSupervisor.state()
-
-    Game.update_seen(socket.assigns[:pid])
-    Game.update_dead(socket.assigns[:pid])
-    Game.update_position(socket.assigns[:pid])
-
-    cond do
-      Game.win_color(game) == socket.assigns[:color] ->
-        finish_game(socket.assigns[:pid], socket.assigns[:color])
-
-        socket
-        |> put_flash(:info, "You Win!")
-        |> redirect(to: Routes.page_path(WarWeb.Endpoint, :index))
-
-      Game.win_color(game) == opponent_color(socket) ->
-        finish_game(socket.assigns[:pid], socket.assigns[:color])
-
-        socket
-        |> put_flash(:info, "You Lose!")
-        |> redirect(to: Routes.page_path(WarWeb.Endpoint, :index))
-
-      true ->
-        socket
-    end
+  defp update_assigns_from_game(socket = %{assigns: %{tick_move: 600}}) do
+    socket
     |> assign(tick_move: 0)
-    |> assign_pieces(game)
-    |> assign_enemies(game)
-    |> assign_detail(game)
+    |> update_assigns_from_game
   end
 
-  defp update_assigns_from_game(socket = %{assigns: %{tick_move: move}}) do
+  defp update_assigns_from_game(socket = %{assigns: %{tick_move: tick_move}}) do
     game =
       socket.assigns[:pid]
       |> GameSupervisor.state()
 
-    Game.update_seen(socket.assigns[:pid])
     Game.update_dead(socket.assigns[:pid])
+    Game.update_seen(socket.assigns[:pid])
+    Game.update_hp(socket.assigns[:pid])
+    Game.update_position(socket.assigns[:pid], tick_move)
 
     cond do
       Game.win_color(game) == socket.assigns[:color] ->
@@ -136,7 +111,7 @@ defmodule WarWeb.GameLive do
       true ->
         socket
     end
-    |> assign(tick_move: move + 1)
+    |> assign(tick_move: tick_move + 1)
     |> assign_pieces(game)
     |> assign_enemies(game)
     |> assign_detail(game)
@@ -148,7 +123,9 @@ defmodule WarWeb.GameLive do
       |> Map.get(my_board(socket))
       |> Enum.reject(fn v -> is_nil(v) end)
       |> Enum.reject(fn v -> v.dead? end)
-      |> Enum.map(fn v -> {v.id, v.position} end)
+      |> Enum.map(fn v ->
+        {v.id, v.position, v.state, v.hp, v.ap, v.attack_area, v.search_area, div(600, v.speed)}
+      end)
       |> Enum.sort()
 
     assign(socket, pieces: p)
@@ -161,10 +138,16 @@ defmodule WarWeb.GameLive do
       |> Enum.reject(fn v -> is_nil(v) end)
       |> Enum.reject(fn v -> v.dead? end)
       |> Enum.filter(fn v -> v.seen? end)
-      |> Enum.map(fn v -> v.position end)
+      |> Enum.map(fn v -> {v.position, v.hp <= 10} end)
       |> Enum.sort()
 
-    assign(socket, enemies: p)
+    c =
+      game
+      |> Map.get(opponent_board(socket))
+      |> Enum.reject(fn v -> is_nil(v) end)
+      |> Enum.count()
+
+    assign(socket, enemies: p, enemies_count: c)
   end
 
   defp assign_detail(%{assigns: %{selected_square: nil}} = socket, _game) do
