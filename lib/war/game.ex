@@ -385,7 +385,7 @@ defmodule War.Game do
   defp searcher_white(key) do
     %{
       id: key,
-      state: "idle",
+      state: "search",
       position: {key, 0},
       ap: 1,
       hp: 100,
@@ -401,7 +401,7 @@ defmodule War.Game do
   defp searcher_black(key) do
     %{
       id: key,
-      state: "idle",
+      state: "search",
       position: {key, 7},
       ap: 1,
       hp: 100,
@@ -417,7 +417,7 @@ defmodule War.Game do
   defp attacker_white(key) do
     %{
       id: key,
-      state: "idle",
+      state: "attack",
       position: {key, 0},
       ap: 5,
       hp: 400,
@@ -433,7 +433,7 @@ defmodule War.Game do
   defp attacker_black(key) do
     %{
       id: key,
-      state: "idle",
+      state: "attack",
       position: {key, 7},
       ap: 5,
       hp: 400,
