@@ -88,35 +88,21 @@ defmodule WarWeb.GameLive do
       socket.assigns[:pid]
       |> GameSupervisor.state()
 
-    socket =
-      socket
-      |> check_finish(game)
-
     Game.update_dead(socket.assigns[:pid])
     Game.update_seen(socket.assigns[:pid])
     Game.update_hp(socket.assigns[:pid])
-
     Game.update_position(socket.assigns[:pid], tick_move)
 
-    socket
-    |> assign(tick_move: tick_move + 1)
-    |> assign_pieces(game)
-    |> assign_enemies(game)
-    |> assign_detail(game)
-  end
-
-  defp check_finish(socket, game) do
     cond do
       Game.win_color(game) == socket.assigns[:color] ->
         finish_game(socket.assigns[:pid], socket.assigns[:color])
 
         socket
+        |> put_flash(:info, "You Win!")
         |> redirect(
           to:
-            Routes.page_path(WarWeb.Endpoint, :result,
-              monitor_pid: GameMonitor.get_pid(socket.assigns[:pid]),
-              result: "Win",
-              color: socket.assigns[:color]
+            Routes.page_path(WarWeb.Endpoint, :review,
+              pid: GameMonitor.get_pid(socket.assigns[:pid])
             )
         )
 
@@ -124,18 +110,21 @@ defmodule WarWeb.GameLive do
         finish_game(socket.assigns[:pid], socket.assigns[:color])
 
         socket
+        |> put_flash(:info, "You Lose!")
         |> redirect(
           to:
-            Routes.page_path(WarWeb.Endpoint, :result,
-              monitor_pid: GameMonitor.get_pid(socket.assigns[:pid]),
-              result: "Lose",
-              color: socket.assigns[:color]
+            Routes.page_path(WarWeb.Endpoint, :review,
+              {pid: GameMonitor.get_pid(socket.assigns[:pid], number: 30})
             )
         )
 
       true ->
         socket
     end
+    |> assign(tick_move: tick_move + 1)
+    |> assign_pieces(game)
+    |> assign_enemies(game)
+    |> assign_detail(game)
   end
 
   defp assign_pieces(socket, game) do

@@ -1,0 +1,10 @@
+<div class="column column-50">
+  <div class="row">
+    <h1>You <%= @result %>!</h1>
+  </div>
+</div>
+<div class="column column-25">
+  <div class="row">
+    <a href="/review" class="button">レビュー画面へ</a>
+  </div>
+</div>

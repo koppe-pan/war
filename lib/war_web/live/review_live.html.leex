@@ -1,0 +1,62 @@
+<div class="row">
+  <div class="column column-25">
+    <a href="/" class="button">Top</a>
+    <div class="chat">
+      <section>
+        <%=for {message, color} <- @messages do %>
+          <p class="<%= color %>"><%= message %></p>
+        <% end %>
+      </section>
+      <div class="form-group">
+        <form phx-submit="submit-message">
+          <input name="message" type="text" placeholder="メッセージを入力" autocomplete="off" autofocus>
+          <button type="submit">送信</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="column column-50">
+    <div style="position:relative;height:0;width:100%;padding-bottom:100%;">
+      <div id="board-container">
+        <%= for r <- 7..0 do %>
+          <%= for f <- 7..0 do %>
+            <div
+              class="square file-<%= f %> rank-<%= r %> <%= if rem(r+f, 2) == 0, do: "square-dark", else: "square-light"%>"
+            ></div>
+          <% end %>
+        <% end %>
+      </div>
+      <div id="pieces-container">
+        <%= for {{file, rank}, seen} <- @pieces do %>
+          <div
+           class="piece file-<%= file %> rank-<%= rank %> <%= if seen, do: "piece-seen"%>"
+            ></div>
+        <% end %>
+        <%= for {{file, rank}, seen} <- @enemies do %>
+          <div
+            class="piece piece-enemy file-<%= file %> rank-<%= rank %> <%= if seen, do: "piece-seen"%>"
+            ></div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  <div class="column column-25">
+    <form phx-change="phase-changed">
+      <input type="range" id="sequence" name="num" value="<%= @number %>" min="0" max="<%= @size %>">
+    </form>
+    <div class="column column-25">
+      <button phx-click="back">前へ</button>
+    </div>
+    <div class="column column-25">
+      <form phx-change="play-pause-changed">
+        <div class="playpause">
+          <input type="checkbox" value="" id="playPauseCheckbox" name="playPauseCheckbox" <%= @play %>/>
+          <label for="playPauseCheckbox"></label>
+        </div>
+      </form>
+    </div>
+    <div class="column column-25">
+      <button phx-click="forward">後ろへ</button>
+    </div>
+  <div>
+</div>

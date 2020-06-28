@@ -20,6 +20,8 @@ defmodule WarWeb.Router do
     get "/", PageController, :index
     get "/new", PageController, :new
     post "/play", PageController, :play
+    get "/prepare", PageController, :result
+    live "/review", ReviewLive, :index
     live "/game", GameLive, :index
   end
 

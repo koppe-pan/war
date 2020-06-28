@@ -1,0 +1,37 @@
+<div class="row">
+  <div class="column column-25">
+    <a href="/new" class="button">New Game</a>
+  </div>
+  <div class="column column-50">
+    <div style="position:relative;height:0;width:100%;padding-bottom:100%;">
+      <div id="board-container">
+        <%= for r <- 7..0 do %>
+          <%= for f <- 7..0 do %>
+            <div
+              class="square file-<%= f %> rank-<%= r %> <%= if rem(r+f, 2) == 0, do: "square-dark", else: "square-light"%>"
+            ></div>
+          <% end %>
+        <% end %>
+      </div>
+      <div id="pieces-container">
+        <%= for {file, rank} <- @pieces do %>
+          <div
+            class="piece file-<%= file %> rank-<%= rank %>"
+            ></div>
+        <% end %>
+        <%= for {file, rank} <- @enemies do %>
+          <div
+            class="piece piece-enemy file-<%= file %> rank-<%= rank %>"
+            ></div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  <div class="column column-50">
+    <input type="range" id="sequence" name="sequence" value="<% @number %>" min="0" max="<% @size %>">
+    <label for="sequence">Sequence</label>
+  </div>
+  <div class="column column-50">
+    <button class="button play-button"></button>
+  </div>
+</div>

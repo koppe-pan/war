@@ -40,7 +40,7 @@
       </form>
       <form phx-submit="update-direction">
         <input name="id_for_direction" value="<%= @detail.id %>" type="hidden">
-        <input name="direction" type="text" placeholder="<%= @detail.direction %>" autocomplete="off">
+        <input name="direction" type="text" placeholder="<%= @detail.direction %>" autocomplete="off" autofocus>
         <button type="submit">change direction</button>
       </form>
     <% end %>

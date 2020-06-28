@@ -1,7 +1,7 @@
 defmodule WarWeb.PageController do
   use WarWeb, :controller
   import Phoenix.LiveView.Controller
-  alias War.GameSupervisor
+  alias War.{GameSupervisor, GameMonitor}
 
   def index(conn, _params) do
     render(conn, "index.html")
@@ -35,5 +35,12 @@ defmodule WarWeb.PageController do
     conn
     |> clear_flash()
     |> live_render(WarWeb.GameLive, session: %{"game_pid" => pid})
+  end
+
+  def result(conn, %{"monitor_pid" => pid, "result" => res, "color" => color}) do
+    conn
+    |> put_session(:review_pid, pid)
+    |> put_session(:color, color)
+    |> render("result.html", result: res)
   end
 end

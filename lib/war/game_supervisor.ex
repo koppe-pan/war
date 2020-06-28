@@ -6,12 +6,18 @@ defmodule War.GameSupervisor do
   import DynamicSupervisor, only: [start_child: 2, terminate_child: 2]
 
   @server_mod War.DynamicGameServerSupervisor
-  alias War.{Game}
+  alias War.{Game, GameMonitor, Chat}
 
   @doc """
+
   Creates a new supervised Game process
   """
-  def create_game(id), do: start_child(@server_mod, {Game, id})
+  def create_game(id) do
+    {:ok, pid} = start_child(@server_mod, {Game, id})
+    GameMonitor.start_monitoring(pid)
+    Chat.start_chat(pid)
+    {:ok, pid}
+  end
 
   def state(pid) do
     :sys.get_state(pid)
