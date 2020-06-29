@@ -43,12 +43,14 @@ defmodule WarWeb.ReviewLive do
   end
 
   def handle_event("forward", _, socket) do
-    n = min(socket.assigns.number + 1, socket.assigns.size)
+    num = min(socket.assigns.number + 1, socket.assigns.size)
+    n = find_different_forward_sequence(socket, num)
     {:noreply, update_assigns(socket, n)}
   end
 
   def handle_event("back", _, socket) do
-    n = max(socket.assigns.number - 1, 0)
+    num = max(socket.assigns.number - 1, 0)
+    n = find_different_back_sequence(socket, num)
     {:noreply, update_assigns(socket, n)}
   end
 
@@ -152,6 +154,62 @@ defmodule WarWeb.ReviewLive do
 
     (base_pid <> "chat")
     |> String.to_atom()
+  end
+
+  defp find_different_forward_sequence(socket, num) do
+    monitor =
+      socket.assigns.pid
+      |> GameMonitor.get_monitoring()
+
+    p =
+      monitor
+      |> Map.fetch!(
+        socket.assigns.color
+        |> String.to_atom()
+      )
+      |> Enum.fetch!(num)
+
+    e =
+      monitor
+      |> Map.fetch!(
+        socket
+        |> opponent_color()
+      )
+      |> Enum.fetch!(num)
+
+    if p == socket.assigns.pieces and e == socket.assigns.enemies and num < socket.assigns.size do
+      find_different_forward_sequence(socket, num + 1)
+    else
+      num
+    end
+  end
+
+  defp find_different_back_sequence(socket, num) do
+    monitor =
+      socket.assigns.pid
+      |> GameMonitor.get_monitoring()
+
+    p =
+      monitor
+      |> Map.fetch!(
+        socket.assigns.color
+        |> String.to_atom()
+      )
+      |> Enum.fetch!(num)
+
+    e =
+      monitor
+      |> Map.fetch!(
+        socket
+        |> opponent_color()
+      )
+      |> Enum.fetch!(num)
+
+    if p == socket.assigns.pieces and e == socket.assigns.enemies and num > 0 do
+      find_different_back_sequence(socket, num - 1)
+    else
+      num
+    end
   end
 
   defp opponent_color(%{assigns: %{color: "white"}} = _socket), do: :black

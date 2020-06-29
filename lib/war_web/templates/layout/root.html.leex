@@ -37,32 +37,48 @@
       <div class="tab_content" id="instruction_content">
         <div class="column column-50">
           <div class="row">
-            <div class="instruction-box">
-              <span class="box-title">勝利条件</span>
-              <ol>
-                <li>敵の全キャラを攻撃によって全滅させる。</li>
-                <li>敵の全キャラを索敵によって発見する。</li>
-              </ol>
+            <div class="instruction-container">
+              <div class="instruction-box">
+                <span class="box-title">概要</span>
+                <ul>
+                  <li>それぞれのキャラが各々の「状態」に基づいて勝手に行動する、リアルタイムでステルスなストラテジーゲームです。どこにいるのかわからない敵を索敵しながら進み、発見した敵に攻撃を仕掛けて戦うのです。</li>
+                </ul>
+              </div>
+              <div class="instruction-box">
+                <span class="box-title">勝利条件</span>
+                <ol>
+                  <li>敵の全キャラを攻撃によって全滅させる。</li>
+                  <li>敵の全キャラを索敵によって発見する。</li>
+                </ol>
+              </div>
+              <div class="instruction-box">
+                <span class="box-title">遊び方</span>
+                <ul>
+                  <li>新しくゲームを作る場合は、New Gameを押してください。その後ゲームのIDを、一緒に遊びたい友達に伝えて、そのゲームに参加してもらってください。</li>
+                  <li>友達にIDを教えてもらった場合は、IDを入力し、Playを押してください。</li>
+                </ul>
+              </div>
+              <div class="instruction-box">
+                <span class="box-title">状態について</span>
+                <ul>
+                  <li>'idle' 状態のキャラは何も行いません。</li>
+                  <li>'attack' 状態のキャラは自身から2マス以内の敵キャラを自動で攻撃します。</li>
+                  <li>'search' 状態のキャラは自身から4マス以内の敵キャラを自動で発見します。</li>
+                  <li>攻撃特化型のキャラと索敵特化型のキャラの２種類が存在します。どちらであるかははじめの状態を見ればわかります。</li>
+                </ul>
+              </div>
+              <div class="instruction-box">
+                <span class="box-title">移動について</span>
+                <ul>
+                  <li>'w'を入力すると、上方向へ１マス移動、と登録します。</li>
+                  <li>'a'を入力すると、左方向へ１マス移動、と登録します。</li>
+                  <li>'s'を入力すると、下方向へ１マス移動、と登録します。</li>
+                  <li>'d'を入力すると、右方向へ１マス移動、と登録します。</li>
+                  <li>ボタンを押すと、登録された移動を実行します。</li>
+                  <li>注意すべき点として、'w'と入力された場合、上側のキャラも下側のキャラも同様に上方向へ１マス移動します。上側のキャラは下方向へ移動するわけではありません。</li>
+                </ul>
+                <h3>（例）'wwdd'と入力し、その後ボタンを押すと、上上右と移動します。</h3>
             </div>
-            <div class="instruction-box">
-              <span class="box-title">状態について</span>
-              <ul>
-                <li>'idle' 状態のキャラは何も行いません。</li>
-                <li>'attack' 状態のキャラは自身から2マス以内の敵キャラを自動で攻撃します。</li>
-                <li>'search' 状態のキャラは自身から4マス以内の敵キャラを自動で発見します。</li>
-                <li>攻撃特化型のキャラと索敵特化型のキャラの２種類が存在します。どちらであるかははじめの状態を見ればわかります。</li>
-              </ul>
-            </div>
-            <div class="instruction-box">
-              <span class="box-title">移動について</span>
-              <ul>
-                <li>'w'を入力すると、上方向へ１マス移動、と登録します。</li>
-                <li>'a'を入力すると、左方向へ１マス移動、と登録します。</li>
-                <li>'s'を入力すると、下方向へ１マス移動、と登録します。</li>
-                <li>'d'を入力すると、右方向へ１マス移動、と登録します。</li>
-                <li>ボタンを押すと、登録された移動を実行します。</li>
-              </ul>
-              <h3>（例）'wwdd'と入力し、その後ボタンを押すと、上上右と移動します。</h3>
           </div>
         </div>
       </div>

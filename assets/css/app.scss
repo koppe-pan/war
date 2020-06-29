@@ -119,7 +119,7 @@
   background-size: cover;
   background-image: url("/images/usami.png");
   position: absolute;
-  transition: top ease-in-out 500ms, left ease-in-out 500ms;
+  transition: 100ms all ease;
 }
 
 .piece-captured {
@@ -246,6 +246,12 @@ input[name="tab_item"] {
 }
 
 /*説明文のスタイル*/
+.instruction-container {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+}
+
 .instruction-box {
   position: relative;
   margin: 2em 0;
